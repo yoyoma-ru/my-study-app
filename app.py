@@ -9,7 +9,7 @@ scope = ['https://spreadsheets.google.com/feeds', 'https://www.googleapis.com/au
 creds = ServiceAccountCredentials.from_json_keyfile_name('credentials.json', scope)
 client = gspread.authorize(creds)
 
-# シート名を「学習時間」に変更
+# シート名
 SHEET_NAME = "学習時間" 
 
 try:
@@ -29,8 +29,7 @@ with st.form("input_form"):
     # 2. 分野
     category = st.selectbox("分野", ["英語", "IT", "バイナリー", "読書", "ジャーナリング", "その他", "休む"])
 
-    # 3. 開始時間（初期状態を空に設定）
-    # placeholder を使うことで入力例を表示しつつ、最初は空欄にします
+    # 3. 開始時間
     start_time_raw = st.text_input("開始時間 (記入例 09:00)", value="", placeholder="未入力なら空白")
 
     # 4. 時間（勉強または休む）
@@ -47,38 +46,23 @@ if submitted:
     # バリデーション：時間は数字のみか確認
     if duration_raw and not duration_raw.isdigit():
         st.error("「時間」には半角数字のみを入力してください。")
+    # 開始時間が入力されている場合のみ形式チェック
     elif start_time_raw and not re.match(r"^\d{1,2}:\d{2}$", start_time_raw):
         st.error("「開始時間」は 09:00 のような形式（半角）で入力してください。")
     else:
         try:
+            # 日付を「1/2」形式に
             formatted_date = selected_date.strftime("%-m/%-d")
             
-            # --- ここが修正ポイント ---
-            # 入力された文字を数値(int)に変換。空の場合はNone（または空文字）にする
+            # 入力された「分」を数値に変換（空なら空文字）
+            # これによりスプレッドシート上で '20 ではなく 20（数値）として扱われます
             duration_value = int(duration_raw) if duration_raw else ""
             
             study_time = ""
             rest_time = ""
             if category == "休む":
-                rest_time = duration_value  # 数値として代入
+                rest_time = duration_value
             else:
-                study_time = duration_value # 数値として代入
-            # --------------------------
+                study_time = duration_value
 
-            row = [
-                formatted_date,
-                weekday_str,
-                category,
-                start_time_raw,
-                study_time,
-                rest_time,
-                location,
-                memo
-            ]
-            
-            # 数字を数字として書き込む設定
-            sheet.append_row(row, value_input_option="RAW")
-            st.success("保存完了しました！")
-            st.balloons()
-        except Exception as e:
-            st.error(f"保存失敗: {e}")
+            # カラム順：日付, 曜日, 分野, 開始時間,
