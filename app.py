@@ -43,19 +43,15 @@ with st.form("input_form"):
 
 # --- 保存処理 ---
 if submitted:
-    # バリデーション：時間は数字のみか確認
+    # バリデーション
     if duration_raw and not duration_raw.isdigit():
         st.error("「時間」には半角数字のみを入力してください。")
-    # 開始時間が入力されている場合のみ形式チェック
     elif start_time_raw and not re.match(r"^\d{1,2}:\d{2}$", start_time_raw):
         st.error("「開始時間」は 09:00 のような形式（半角）で入力してください。")
     else:
         try:
-            # 日付を「1/2」形式に
+            # データの整形
             formatted_date = selected_date.strftime("%-m/%-d")
-            
-            # 入力された「分」を数値に変換（空なら空文字）
-            # これによりスプレッドシート上で '20 ではなく 20（数値）として扱われます
             duration_value = int(duration_raw) if duration_raw else ""
             
             study_time = ""
@@ -65,4 +61,23 @@ if submitted:
             else:
                 study_time = duration_value
 
-            # カラム順：日付, 曜日, 分野, 開始時間,
+            # 書き込む行の作成
+            row = [
+                formatted_date,
+                weekday_str,
+                category,
+                start_time_raw,
+                study_time,
+                rest_time,
+                location,
+                memo
+            ]
+            
+            # スプレッドシートへ保存
+            sheet.append_row(row, value_input_option="USER_ENTERED")
+            
+            st.success("保存完了しました！")
+            st.balloons()
+
+        except Exception as e:
+            st.error(f"保存失敗: {e}")
