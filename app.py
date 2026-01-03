@@ -44,38 +44,40 @@ with st.form("input_form"):
 
 # --- 保存処理 ---
 if submitted:
-    # バリデーション：時間は数字のみか確認（空欄も許可する場合は条件を調整）
+    # バリデーション：時間は数字のみか確認
     if duration_raw and not duration_raw.isdigit():
         st.error("「時間」には半角数字のみを入力してください。")
-    # 開始時間が入力されている場合のみ形式チェック
     elif start_time_raw and not re.match(r"^\d{1,2}:\d{2}$", start_time_raw):
         st.error("「開始時間」は 09:00 のような形式（半角）で入力してください。")
     else:
         try:
-            # 日付を「1/2」形式に
             formatted_date = selected_date.strftime("%-m/%-d")
             
-            # 分野によって「勉強」か「休む」に振り分け
+            # --- ここが修正ポイント ---
+            # 入力された文字を数値(int)に変換。空の場合はNone（または空文字）にする
+            duration_value = int(duration_raw) if duration_raw else ""
+            
             study_time = ""
             rest_time = ""
             if category == "休む":
-                rest_time = duration_raw
+                rest_time = duration_value  # 数値として代入
             else:
-                study_time = duration_raw
+                study_time = duration_value # 数値として代入
+            # --------------------------
 
-            # カラム順：日付, 曜日, 分野, 開始時間, 勉強, 休む, 場所, 備考
             row = [
                 formatted_date,
                 weekday_str,
                 category,
-                start_time_raw, # 空なら空のまま反映される
+                start_time_raw,
                 study_time,
                 rest_time,
                 location,
                 memo
             ]
             
-            sheet.append_row(row)
+            # 数字を数字として書き込む設定
+            sheet.append_row(row, value_input_option="RAW")
             st.success("保存完了しました！")
             st.balloons()
         except Exception as e:
