@@ -34,7 +34,7 @@ with st.form("input_form"):
     # 自由入力できるようにヒント（placeholder）を変更しました
     start_time_raw = st.text_input("開始時間", value="", placeholder="例: 09:00, 朝, 起床後 など")
 
-    # 4. 時間（勉強または休む）
+    # 4. 時間（分） ← ここでエラーが起きていました
     duration_raw = st.text_input("時間（分）", value="", placeholder="半角数字で入力")
 
     # 5. 場所と備考
