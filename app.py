@@ -1,11 +1,13 @@
 import streamlit as st
 import gspread
-from oauth2client.service_account import ServiceAccountCredentials
-from datetime import datetime
+from google.oauth2.service_account import Credentials # ライブラリを変更
 
-# --- スプレッドシート接続設定 ---
+# --- スプレッドシート接続設定 (Secrets対応版) ---
 scope = ['https://spreadsheets.google.com/feeds', 'https://www.googleapis.com/auth/drive']
-creds = ServiceAccountCredentials.from_json_keyfile_name('credentials.json', scope)
+
+# st.secrets から認証情報を取得
+conf = st.secrets["gcp_service_account"]
+creds = Credentials.from_service_account_info(conf, scopes=scope)
 client = gspread.authorize(creds)
 
 SPREADSHEET_NAME = "学習時間"
