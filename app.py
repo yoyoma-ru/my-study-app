@@ -22,7 +22,7 @@ except Exception as e:
 st.title("📚 学習記録入力")
 
 with st.form("input_form"):
-    selected_date = st.date_input("日付", datetime.now())
+    selected_date = st.date_input("日付", datetime.datetime.now())
     weekdays = ["月", "火", "水", "木", "金", "土", "日"]
     weekday_str = weekdays[selected_date.weekday()]
 
