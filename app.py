@@ -22,7 +22,7 @@ except Exception as e:
 
 # --- 日本時間(JST)を取得する設定 ---
 JST = timezone(timedelta(hours=+9), 'JST')
-now_jst = datetime.datetime.now(JST)
+now_jst = datetime.now(JST)
 
 # --- アプリ画面構成 ---
 st.title("📚 学習記録入力")
