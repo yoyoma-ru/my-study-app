@@ -28,7 +28,7 @@ with st.form("input_form"):
     weekdays = ["月", "火", "水", "木", "金", "土", "日"]
     weekday_str = weekdays[selected_date.weekday()]
 
-    category = st.selectbox("分野", ["英語", "IT", "バイナリー", "読書", "ジャーナリング", "その他", "休む"])
+    category = st.selectbox("分野", ["英語", "IT", "バイナリー", "読書", "ジャーナリング", "副業", "その他", "休む"])
     start_time_raw = st.text_input("開始時間", value="", placeholder="例: 09:00, 朝 など")
     duration_raw = st.text_input("時間（分）", value="", placeholder="半角数字")
     location = st.text_input("場所")
