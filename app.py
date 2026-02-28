@@ -20,11 +20,15 @@ except Exception as e:
     # 実際のエラーメッセージを画面に出すように一時的に変更
     st.error(f"詳細エラー: {e}")
 
+# --- 日本時間(JST)を取得する設定 ---
+JST = timezone(timedelta(hours=+9), 'JST')
+now_jst = datetime.datetime.now(JST)
+
 # --- アプリ画面構成 ---
 st.title("📚 学習記録入力")
 
 with st.form("input_form"):
-    selected_date = st.date_input("日付", datetime.datetime.now())
+    selected_date = st.date_input("日付", now_jst)
     weekdays = ["月", "火", "水", "木", "金", "土", "日"]
     weekday_str = weekdays[selected_date.weekday()]
 
