@@ -17,6 +17,8 @@ try:
     workbook = client.open(SPREADSHEET_NAME)
 except Exception as e:
     st.error(f"エラー: スプレッドシート『{SPREADSHEET_NAME}』が見つかりません。")
+    # 実際のエラーメッセージを画面に出すように一時的に変更
+    st.error(f"詳細エラー: {e}")
 
 # --- アプリ画面構成 ---
 st.title("📚 学習記録入力")
