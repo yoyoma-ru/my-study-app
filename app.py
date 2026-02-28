@@ -1,6 +1,7 @@
 import streamlit as st
 import gspread
 from google.oauth2.service_account import Credentials # ライブラリを変更
+import datetime
 
 # --- スプレッドシート接続設定 (Secrets対応版) ---
 scope = ['https://spreadsheets.google.com/feeds', 'https://www.googleapis.com/auth/drive']
