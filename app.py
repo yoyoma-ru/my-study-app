@@ -35,7 +35,7 @@ with st.form("input_form"):
     category = st.selectbox("分野", ["英語", "IT", "バイナリー", "読書", "ジャーナリング", "副業", "その他", "休む"])
     start_time_raw = st.text_input("開始時間", value="", placeholder="例: 09:00, 朝 など")
     duration_raw = st.text_input("時間（分）", value="", placeholder="半角数字")
-    location = st.text_input("場所")
+    location = st.text_input("場所", ["//", "家", "外", "スタバ", "マクド", "カフェ", ""])
     memo = st.text_area("備考")
 
     submitted = st.form_submit_button("スプレッドシートに保存")
