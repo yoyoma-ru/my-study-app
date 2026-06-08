@@ -41,10 +41,27 @@ def on_duration_pill_change():
 def on_duration_change():
     st.session_state['duration_pill'] = None
 
-if 'start_time_input' not in st.session_state:
-    st.session_state['start_time_input'] = ""
-if 'duration_input' not in st.session_state:
-    st.session_state['duration_input'] = ""
+# --- リセット処理（日付以外を初期状態に戻す） ---
+def reset_form():
+    st.session_state['category_pill']      = "読書"
+    st.session_state['time_pill']          = None
+    st.session_state['start_time_input']   = ""
+    st.session_state['duration_pill']      = None
+    st.session_state['duration_input']     = ""
+    st.session_state['location_pill']      = None
+    st.session_state['location_other']     = ""
+    st.session_state['input_output_pill']  = None
+    st.session_state['memo_input']         = ""
+
+# --- セッション初期化 ---
+for key, default in [
+    ('start_time_input', ""),
+    ('duration_input',   ""),
+    ('location_other',   ""),
+    ('memo_input',       ""),
+]:
+    if key not in st.session_state:
+        st.session_state[key] = default
 
 # --- アプリ画面構成 ---
 st.title("📚 学習記録入力")
@@ -56,7 +73,8 @@ weekday_str = weekdays[selected_date.weekday()]
 category = st.pills(
     "分野",
     ["読書", "瞑想", "バイナリー", "IT", "ジャーナリング", "その他", "休む"],
-    default="読書"
+    default="読書",
+    key="category_pill"
 )
 
 st.pills("開始時間", ["朝", "昼", "夕方", "夜"],
@@ -78,19 +96,31 @@ duration_raw = st.text_input("時間（分）_input",
                               label_visibility="collapsed")
 
 # 場所の選択（その他は自由記入）
-location_choice = st.pills("場所", ["//", "家", "外", "スタバ", "マクド", "cafe", "その他"])
+location_choice = st.pills("場所", ["//", "家", "外", "スタバ", "マクド", "cafe", "その他"],
+                            key="location_pill")
 location = ""
 if location_choice == "その他":
-    location = st.text_input("場所（自由記入）", placeholder="場所を入力してください")
+    location = st.text_input("場所（自由記入）",
+                              key="location_other",
+                              placeholder="場所を入力してください")
 elif location_choice:
     location = location_choice
 
-input_output = st.pills("種別", ["-", "In", "Out"])
+input_output = st.pills("種別", ["-", "In", "Out"], key="input_output_pill")
 
-memo = st.text_area("備考")
+memo = st.text_area("備考", key="memo_input")
 
-# --- 保存ボタン ---
-if st.button("スプレッドシートに保存", type="primary", use_container_width=True):
+# --- ボタン行：保存（左・大）＋ リセット（右・小） ---
+col_save, col_reset = st.columns([3, 1])
+
+with col_reset:
+    st.button("🔄 リセット", on_click=reset_form, use_container_width=True)
+
+with col_save:
+    save_clicked = st.button("スプレッドシートに保存", type="primary", use_container_width=True)
+
+# --- 保存処理 ---
+if save_clicked:
     if duration_raw and not duration_raw.isdigit():
         st.error("「時間」には半角数字のみを入力してください。")
     else:
