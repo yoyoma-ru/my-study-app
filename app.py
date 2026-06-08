@@ -24,6 +24,28 @@ except Exception as e:
 JST = timezone(timedelta(hours=+9), 'JST')
 now_jst = datetime.now(JST)
 
+# --- 開始時間・所要時間のpills→入力欄への自動反映 ---
+def on_time_pill_change():
+    val = st.session_state.get('time_pill')
+    if val is not None:
+        st.session_state['start_time_input'] = val
+
+def on_start_time_change():
+    st.session_state['time_pill'] = None
+
+def on_duration_pill_change():
+    val = st.session_state.get('duration_pill')
+    if val is not None:
+        st.session_state['duration_input'] = val
+
+def on_duration_change():
+    st.session_state['duration_pill'] = None
+
+if 'start_time_input' not in st.session_state:
+    st.session_state['start_time_input'] = ""
+if 'duration_input' not in st.session_state:
+    st.session_state['duration_input'] = ""
+
 # --- アプリ画面構成 ---
 st.title("📚 学習記録入力")
 
@@ -37,8 +59,23 @@ category = st.pills(
     default="読書"
 )
 
-start_time_raw = st.text_input("開始時間", value="", placeholder="例: 09:00, 朝 など")
-duration_raw = st.text_input("時間（分）", value="", placeholder="半角数字")
+st.pills("開始時間", ["朝", "昼", "夕方", "夜"],
+         key="time_pill",
+         on_change=on_time_pill_change)
+start_time_raw = st.text_input("開始時間_input",
+                                key="start_time_input",
+                                on_change=on_start_time_change,
+                                placeholder="カスタム入力（例: 09:00）",
+                                label_visibility="collapsed")
+
+st.pills("時間（分）", ["5", "10", "15", "20", "25", "30"],
+         key="duration_pill",
+         on_change=on_duration_pill_change)
+duration_raw = st.text_input("時間（分）_input",
+                              key="duration_input",
+                              on_change=on_duration_change,
+                              placeholder="半角数字（カスタム入力）",
+                              label_visibility="collapsed")
 
 # 場所の選択（その他は自由記入）
 location_choice = st.pills("場所", ["家", "外", "スタバ", "マクド", "cafe", "その他"])
@@ -48,7 +85,7 @@ if location_choice == "その他":
 elif location_choice:
     location = location_choice
 
-input_output = st.pills("種別", ["インプット", "アウトプット"])
+input_output = st.pills("種別", ["-", "In", "Out"])
 
 memo = st.text_area("備考")
 
