@@ -78,7 +78,7 @@ duration_raw = st.text_input("時間（分）_input",
                               label_visibility="collapsed")
 
 # 場所の選択（その他は自由記入）
-location_choice = st.pills("場所", ["家", "外", "スタバ", "マクド", "cafe", "その他"])
+location_choice = st.pills("場所", ["//", "家", "外", "スタバ", "マクド", "cafe", "その他"])
 location = ""
 if location_choice == "その他":
     location = st.text_input("場所（自由記入）", placeholder="場所を入力してください")
