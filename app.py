@@ -48,7 +48,7 @@ def reset_form():
     st.session_state['start_time_input']   = ""
     st.session_state['duration_pill']      = None
     st.session_state['duration_input']     = ""
-    st.session_state['location_pill']      = None
+    st.session_state['location_pill']      = "//"
     st.session_state['location_other']     = ""
     st.session_state['input_output_pill']  = None
     st.session_state['memo_input']         = ""
@@ -57,6 +57,7 @@ def reset_form():
 for key, default in [
     ('start_time_input', ""),
     ('duration_input',   ""),
+    ('location_pill',    "//"),
     ('location_other',   ""),
     ('memo_input',       ""),
 ]:
