@@ -203,7 +203,8 @@ if save_clicked:
                                         t.hour, t.minute, tzinfo=JST)
                     end_dt = start_dt + timedelta(minutes=duration_value)
                     event = {
-                        "summary": category or "学習",          # タイトル（例: IT / 読書 / 休む）
+                        # タイトルに開始時刻と所要時間を含める（例: IT 14:30〜（30分））
+                        "summary": f"{category or '学習'} {start_dt.strftime('%H:%M')}〜（{duration_value}分）",
                         "location": location,                    # 予定の「場所」欄
                         "description": f"種別: {input_output or '-'}\n備考: {memo}",
                         "colorId": "5",                          # バナナ（黄色）で固定
