@@ -207,7 +207,8 @@ if save_clicked:
                         "summary": f"{category or '学習'}（{duration_value}分）",
                         "location": location,                    # 予定の「場所」欄
                         "description": f"種別: {input_output or '-'}\n備考: {memo}",
-                        "colorId": "5",                          # バナナ（黄色）で固定
+                        # 休む=緑(バジル/10)、それ以外=黄(バナナ/5)
+                        "colorId": "10" if category == "休む" else "5",
                         "start": {"dateTime": start_dt.isoformat(), "timeZone": "Asia/Tokyo"},
                         "end":   {"dateTime": end_dt.isoformat(),   "timeZone": "Asia/Tokyo"},
                     }
