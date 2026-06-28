@@ -101,17 +101,6 @@ category = st.pills(
     key="category_pill"
 )
 
-# 所要時間（pills + カスタム入力）
-st.pills("時間（分）",
-         ["5", "10", "15", "20", "25", "30", "35", "40", "45", "50", "55", "60"],
-         key="duration_pill",
-         on_change=on_duration_pill_change)
-duration_raw = st.text_input("時間（分）_input",
-                              key="duration_input",
-                              on_change=on_duration_change,
-                              placeholder="半角数字（カスタム入力）",
-                              label_visibility="collapsed")
-
 # 開始時間（現在時刻ボタンで自動計算、HH:MM手入力で上書きも可）
 st.markdown("**開始時間**")
 col_now, col_start = st.columns([1, 2])
@@ -122,6 +111,17 @@ with col_start:
                                     key="start_time_input",
                                     placeholder="例: 09:00",
                                     label_visibility="collapsed")
+
+# 所要時間（pills + カスタム入力）
+st.pills("時間（分）",
+         ["5", "10", "15", "20", "25", "30", "35", "40", "45", "50", "55", "60"],
+         key="duration_pill",
+         on_change=on_duration_pill_change)
+duration_raw = st.text_input("時間（分）_input",
+                              key="duration_input",
+                              on_change=on_duration_change,
+                              placeholder="半角数字（カスタム入力）",
+                              label_visibility="collapsed")
 
 # 計算結果のプレビュー（開始〜終了の時間ブロック）
 _start_disp = st.session_state.get('start_time_input', '')
