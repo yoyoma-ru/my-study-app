@@ -94,6 +94,9 @@ selected_date = st.date_input("日付", now_jst)
 weekdays = ["月", "火", "水", "木", "金", "土", "日"]
 weekday_str = weekdays[selected_date.weekday()]
 
+# リセット（日付以外をクリア）
+st.button("🔄 リセット", on_click=reset_form)
+
 category = st.pills(
     "分野",
     ["読書", "瞑想", "バイナリー", "IT", "ジャーナリング", "その他", "休む"],
@@ -149,14 +152,8 @@ input_output = st.pills("種別", ["-", "In", "Out"], key="input_output_pill")
 
 memo = st.text_area("備考", key="memo_input")
 
-# --- ボタン行：保存（左・大）＋ リセット（右・小） ---
-col_save, col_reset = st.columns([3, 1])
-
-with col_reset:
-    st.button("🔄 リセット", on_click=reset_form, use_container_width=True)
-
-with col_save:
-    save_clicked = st.button("スプレッドシートに保存", type="primary", use_container_width=True)
+# --- 保存ボタン ---
+save_clicked = st.button("スプレッドシートに保存", type="primary", use_container_width=True)
 
 # --- 保存処理 ---
 if save_clicked:
