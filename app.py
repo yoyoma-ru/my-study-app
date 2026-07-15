@@ -99,7 +99,7 @@ st.button("🔄 リセット", on_click=reset_form)
 
 category = st.pills(
     "分野",
-    ["読書", "瞑想", "バイナリー", "IT", "ジャーナリング", "その他", "休む"],
+    ["バイナリー", "読書", "IT", "ジャーナリング", "その他", "瞑想",　"休む"],
     default="読書",
     key="category_pill"
 )
