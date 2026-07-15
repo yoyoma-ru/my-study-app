@@ -60,7 +60,7 @@ def on_duration_change():
 
 # --- リセット処理（日付以外を初期状態に戻す） ---
 def reset_form():
-    st.session_state['category_pill']      = "読書"
+    st.session_state['category_pill']      = "バイナリー"
     st.session_state['duration_pill']      = None
     st.session_state['duration_input']     = ""
     st.session_state['start_time_input']   = ""
