@@ -150,7 +150,7 @@ elif location_choice:
 
 input_output = st.pills("種別", ["-", "In", "Out"], key="input_output_pill")
 
-memo = st.text_area("備考", key="memo_input")
+memo = st.text_input("備考", key="memo_input")
 
 # --- 保存ボタン ---
 save_clicked = st.button("スプレッドシートに保存", type="primary", use_container_width=True)
