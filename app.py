@@ -88,7 +88,7 @@ if 'end_time_dt' not in st.session_state:
     recompute_start()
 
 # --- アプリ画面構成 ---
-st.title("📚 学習記録入力")
+st.subheader("📚 学習記録入力")
 
 selected_date = st.date_input("日付", now_jst)
 weekdays = ["月", "火", "水", "木", "金", "土", "日"]
