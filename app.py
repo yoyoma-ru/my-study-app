@@ -126,16 +126,18 @@ duration_raw = st.text_input("時間（分）_input",
                               placeholder="半角数字（カスタム入力）",
                               label_visibility="collapsed")
 
-# 計算結果のプレビュー（開始〜終了の時間ブロック）
+# カレンダー登録のプレビュー（常に1行表示し、入力に応じて文字だけ更新する）
 _start_disp = st.session_state.get('start_time_input', '')
 _dur_disp = st.session_state.get('duration_input', '')
+_preview = "🟡 カレンダー登録: 開始時間と時間を入力すると表示されます"
 if _start_disp and _dur_disp.isdigit():
     try:
         _s = datetime.strptime(_start_disp, "%H:%M")
         _e = _s + timedelta(minutes=int(_dur_disp))
-        st.caption(f"🟡 カレンダー登録: {_start_disp} 〜 {_e.strftime('%H:%M')}（{_dur_disp}分）")
+        _preview = f"🟡 カレンダー登録: {_start_disp} 〜 {_e.strftime('%H:%M')}（{_dur_disp}分）"
     except ValueError:
-        st.caption("⚠️ 開始時間は HH:MM 形式で入力するとカレンダーに登録されます")
+        _preview = "⚠️ 開始時間は HH:MM 形式で入力するとカレンダーに登録されます"
+st.caption(_preview)
 
 # 場所の選択（その他は自由記入）
 location_choice = st.pills("場所", ["//", "家", "外", "スタバ", "マクド", "cafe", "その他"],
