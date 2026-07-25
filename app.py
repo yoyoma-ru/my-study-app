@@ -117,7 +117,7 @@ with col_start:
 
 # 所要時間（pills + カスタム入力）
 st.pills("時間（分）",
-         ["5", "10", "15", "20", "25", "30", "35", "40", "45", "50", "55", "60"],
+         ["3", "5", "10", "15", "20", "25", "30", "35", "40", "45", "50", "55", "60"],
          key="duration_pill",
          on_change=on_duration_pill_change)
 duration_raw = st.text_input("時間（分）_input",
@@ -191,7 +191,12 @@ if save_clicked:
             range_to_update = f"A{next_row}:I{next_row}"
             sheet.update(range_name=range_to_update, values=[row], value_input_option="USER_ENTERED")
 
-            st.success(f"『{target_sheet_name}』の {next_row} 行目に保存しました！")
+            # 保存結果は単一のプレースホルダにまとめて表示する。
+            # 以降カレンダー登録処理が増えても、行を追加せず同じ場所の文字だけ更新する。
+            status = st.empty()
+            lines = [f"✅ 『{target_sheet_name}』の {next_row} 行目に保存しました！"]
+            status.success("  \n".join(lines))
+            cal_ok = True
 
             # --- Google カレンダー登録（開始時刻と所要時間が有効な場合のみ）---
             if duration_value and start_time_raw:
@@ -211,14 +216,18 @@ if save_clicked:
                         "end":   {"dateTime": end_dt.isoformat(),   "timeZone": "Asia/Tokyo"},
                     }
                     calendar_service.events().insert(calendarId=CALENDAR_ID, body=event).execute()
-                    st.success(f"📅 カレンダーにも登録しました（{start_dt.strftime('%H:%M')}〜{end_dt.strftime('%H:%M')}）")
+                    lines.append(f"📅 カレンダーにも登録しました（{start_dt.strftime('%H:%M')}〜{end_dt.strftime('%H:%M')}）")
                 except ValueError:
-                    st.info("📅 開始時間が HH:MM 形式でないため、カレンダー登録はスキップしました。")
+                    lines.append("📅 開始時間が HH:MM 形式でないため、カレンダー登録はスキップしました。")
+                    cal_ok = False
                 except Exception as cal_err:
-                    st.warning(f"📅 カレンダー登録に失敗しました: {cal_err}")
+                    lines.append(f"📅 カレンダー登録に失敗しました: {cal_err}")
+                    cal_ok = False
             else:
-                st.info("📅 開始時間または所要時間が未入力のため、カレンダー登録はスキップしました。")
+                lines.append("📅 開始時間または所要時間が未入力のため、カレンダー登録はスキップしました。")
 
+            # 同じプレースホルダを更新（新しい行は追加されない）
+            (status.success if cal_ok else status.warning)("  \n".join(lines))
             st.balloons()
 
         except Exception as e:
