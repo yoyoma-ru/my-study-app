@@ -179,7 +179,7 @@ if save_clicked:
 
             study_time = ""
             rest_time = ""
-            if category == "休む":
+            if category in ("休む", "瞑想"):
                 rest_time = duration_value
             else:
                 study_time = duration_value
