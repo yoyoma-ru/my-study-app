@@ -71,6 +71,24 @@ def reset_form():
     st.session_state['end_time_dt']        = datetime.now(JST)
     recompute_start()
 
+# --- クイック入力プリセット（よく登録する項目をまとめて入力）---
+def apply_preset(category, duration, location, input_output, memo):
+    st.session_state['category_pill']      = category
+    st.session_state['duration_pill']      = duration
+    st.session_state['duration_input']     = duration
+    st.session_state['location_pill']      = location
+    st.session_state['location_other']     = ""
+    st.session_state['input_output_pill']  = input_output
+    st.session_state['memo_input']         = memo
+    st.session_state['end_time_dt']        = datetime.now(JST)  # 開始時刻を現在時刻基準に
+    recompute_start()
+
+def preset_meditation():
+    apply_preset("瞑想", "3", "家", "-", "呼吸")
+
+def preset_workout():
+    apply_preset("休む", "15", "//", "-", "筋トレ")
+
 # --- セッション初期化 ---
 for key, default in [
     ('start_time_input', ""),
@@ -94,8 +112,14 @@ selected_date = st.date_input("日付", now_jst)
 weekdays = ["月", "火", "水", "木", "金", "土", "日"]
 weekday_str = weekdays[selected_date.weekday()]
 
-# リセット（日付以外をクリア）
-st.button("🔄 リセット", on_click=reset_form)
+# リセット＋クイック入力プリセット（横並び）
+col_reset, col_med, col_workout = st.columns(3)
+with col_reset:
+    st.button("🔄 リセット", on_click=reset_form, use_container_width=True)
+with col_med:
+    st.button("🧘 瞑想", on_click=preset_meditation, use_container_width=True)
+with col_workout:
+    st.button("💪 筋トレ", on_click=preset_workout, use_container_width=True)
 
 category = st.pills(
     "分野",
