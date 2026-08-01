@@ -112,8 +112,8 @@ selected_date = st.date_input("日付", now_jst)
 weekdays = ["月", "火", "水", "木", "金", "土", "日"]
 weekday_str = weekdays[selected_date.weekday()]
 
-# リセット＋クイック入力プリセット（横並び）
-col_reset, col_med, col_workout = st.columns(3)
+# リセット＋クイック入力プリセット（横並び・幅は狭め、右側はスペーサー）
+col_reset, col_med, col_workout, _spacer = st.columns([1, 1, 1, 2])
 with col_reset:
     st.button("🔄 リセット", on_click=reset_form, use_container_width=True)
 with col_med:
