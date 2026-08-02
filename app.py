@@ -89,6 +89,9 @@ def preset_meditation():
 def preset_workout():
     apply_preset("休む", "15", "//", "-", "筋トレ")
 
+def preset_journal():
+    apply_preset("ジャーナリング", "5", "//", "Out", "日記")
+
 # --- セッション初期化 ---
 for key, default in [
     ('start_time_input', ""),
@@ -112,14 +115,16 @@ selected_date = st.date_input("日付", now_jst)
 weekdays = ["月", "火", "水", "木", "金", "土", "日"]
 weekday_str = weekdays[selected_date.weekday()]
 
-# リセット＋クイック入力プリセット（横並び・幅は狭め、右側はスペーサー）
-col_reset, col_med, col_workout, _spacer = st.columns([1, 1, 1, 2])
+# リセット＋クイック入力プリセット（1行に並べる）
+col_reset, col_med, col_workout, col_journal = st.columns(4)
 with col_reset:
     st.button("🔄 リセット", on_click=reset_form, use_container_width=True)
 with col_med:
     st.button("🧘 瞑想", on_click=preset_meditation, use_container_width=True)
 with col_workout:
     st.button("💪 筋トレ", on_click=preset_workout, use_container_width=True)
+with col_journal:
+    st.button("📔 朝日記", on_click=preset_journal, use_container_width=True)
 
 category = st.pills(
     "分野",
