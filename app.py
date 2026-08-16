@@ -5,30 +5,34 @@ from googleapiclient.discovery import build
 from datetime import datetime, timezone, timedelta
 
 # --- スプレッドシート・カレンダー接続設定 (Secrets対応版) ---
-scope = [
-    'https://spreadsheets.google.com/feeds',
-    'https://www.googleapis.com/auth/drive',
-    'https://www.googleapis.com/auth/calendar',  # カレンダー連携用に追加
-]
-
-# st.secrets から認証情報を取得
-conf = st.secrets["gcp_service_account"]
-creds = Credentials.from_service_account_info(conf, scopes=scope)
-client = gspread.authorize(creds)
-
-# 同じ認証情報で Google カレンダーのサービスを生成
-calendar_service = build('calendar', 'v3', credentials=creds)
-# 登録先カレンダーID（＝ユーザーのGmailアドレス）。service accountに共有しておくこと
-CALENDAR_ID = st.secrets["user_calendar_id"]
-
 SPREADSHEET_NAME = "学習時間"
 
-try:
+# 接続処理はウィジェット操作のたびのリランで毎回実行すると重い（毎回Googleに再接続し
+# スプレッドシートを開く通信が走る）。@st.cache_resource でキャッシュし、操作のたびに
+# 再接続が走らないようにする（＝分野選択などで「更新が走る」体感をなくす）。
+@st.cache_resource
+def connect_google():
+    scope = [
+        'https://spreadsheets.google.com/feeds',
+        'https://www.googleapis.com/auth/drive',
+        'https://www.googleapis.com/auth/calendar',  # カレンダー連携用
+    ]
+    conf = st.secrets["gcp_service_account"]
+    creds = Credentials.from_service_account_info(conf, scopes=scope)
+    client = gspread.authorize(creds)
+    calendar_service = build('calendar', 'v3', credentials=creds)
     workbook = client.open(SPREADSHEET_NAME)
+    return workbook, calendar_service
+
+try:
+    workbook, calendar_service = connect_google()
 except Exception as e:
     st.error(f"エラー: スプレッドシート『{SPREADSHEET_NAME}』が見つかりません。")
-    # 実際のエラーメッセージを画面に出すように一時的に変更
     st.error(f"詳細エラー: {e}")
+    st.stop()
+
+# 登録先カレンダーID（＝ユーザーのGmailアドレス）。service accountに共有しておくこと
+CALENDAR_ID = st.secrets["user_calendar_id"]
 
 # --- 日本時間(JST)を取得する設定 ---
 JST = timezone(timedelta(hours=+9), 'JST')
