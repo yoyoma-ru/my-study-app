@@ -78,8 +78,9 @@ def reset_form():
 # --- クイック入力プリセット（よく登録する項目をまとめて入力）---
 def apply_preset(category, duration, location, input_output, memo):
     st.session_state['category_pill']      = category
-    st.session_state['duration_pill']      = duration
+    st.session_state['duration_pill']      = duration or None   # 未指定はpill選択なし
     st.session_state['duration_input']     = duration
+    st.session_state['start_time_input']   = ""                 # 一旦クリア（durationがあれば再計算）
     st.session_state['location_pill']      = location
     st.session_state['location_other']     = ""
     st.session_state['input_output_pill']  = input_output
@@ -88,13 +89,16 @@ def apply_preset(category, duration, location, input_output, memo):
     recompute_start()
 
 def preset_meditation():
-    apply_preset("瞑想", "3", "家", "-", "呼吸")
+    apply_preset("瞑想", "5", "家", "-", "呼吸")
 
 def preset_workout():
     apply_preset("休む", "15", "//", "-", "筋トレ")
 
 def preset_journal():
     apply_preset("ジャーナリング", "5", "//", "Out", "日記")
+
+def preset_reading():
+    apply_preset("読書", "", "//", "In", "")
 
 # --- セッション初期化 ---
 for key, default in [
@@ -120,7 +124,7 @@ weekdays = ["月", "火", "水", "木", "金", "土", "日"]
 weekday_str = weekdays[selected_date.weekday()]
 
 # リセット＋クイック入力プリセット（1行に並べる）
-col_reset, col_med, col_workout, col_journal = st.columns(4)
+col_reset, col_med, col_workout, col_journal, col_reading = st.columns(5)
 with col_reset:
     st.button("🔄 リセット", on_click=reset_form, use_container_width=True)
 with col_med:
@@ -129,6 +133,8 @@ with col_workout:
     st.button("💪 筋トレ", on_click=preset_workout, use_container_width=True)
 with col_journal:
     st.button("📔 朝日記", on_click=preset_journal, use_container_width=True)
+with col_reading:
+    st.button("📖 読書", on_click=preset_reading, use_container_width=True)
 
 category = st.pills(
     "分野",
