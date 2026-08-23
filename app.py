@@ -7,25 +7,39 @@ from datetime import datetime, timezone, timedelta
 # --- スプレッドシート・カレンダー接続設定 (Secrets対応版) ---
 SPREADSHEET_NAME = "学習時間"
 
-# 接続処理はウィジェット操作のたびのリランで毎回実行すると重い（毎回Googleに再接続し
-# スプレッドシートを開く通信が走る）。@st.cache_resource でキャッシュし、操作のたびに
-# 再接続が走らないようにする（＝分野選択などで「更新が走る」体感をなくす）。
+# 認証情報とスプレッドシート接続はキャッシュ（操作のたびの再接続を避けて高速化）。
+# gspread(requests)は接続が切れても自動で張り直すので、キャッシュしても問題ない。
 @st.cache_resource
-def connect_google():
+def get_credentials():
     scope = [
         'https://spreadsheets.google.com/feeds',
         'https://www.googleapis.com/auth/drive',
         'https://www.googleapis.com/auth/calendar',  # カレンダー連携用
     ]
     conf = st.secrets["gcp_service_account"]
-    creds = Credentials.from_service_account_info(conf, scopes=scope)
-    client = gspread.authorize(creds)
-    calendar_service = build('calendar', 'v3', credentials=creds)
-    workbook = client.open(SPREADSHEET_NAME)
-    return workbook, calendar_service
+    return Credentials.from_service_account_info(conf, scopes=scope)
+
+@st.cache_resource
+def get_workbook():
+    client = gspread.authorize(get_credentials())
+    return client.open(SPREADSHEET_NAME)
+
+# カレンダー(googleapiclient/httplib2)はキャッシュした接続がアイドル切断されると
+# 最初の登録で [Errno 32] Broken pipe になる。保存のたびに新しい接続で作り直し、
+# さらに接続切れに備えて最大2回試行する。
+def insert_calendar_event(event):
+    last_err = None
+    for _ in range(2):
+        try:
+            service = build('calendar', 'v3', credentials=get_credentials(), cache_discovery=False)
+            service.events().insert(calendarId=CALENDAR_ID, body=event).execute()
+            return
+        except Exception as e:
+            last_err = e
+    raise last_err
 
 try:
-    workbook, calendar_service = connect_google()
+    workbook = get_workbook()
 except Exception as e:
     st.error(f"エラー: スプレッドシート『{SPREADSHEET_NAME}』が見つかりません。")
     st.error(f"詳細エラー: {e}")
@@ -207,69 +221,77 @@ if save_clicked:
             try:
                 sheet = workbook.worksheet(target_sheet_name)
             except gspread.WorksheetNotFound:
+                sheet = None
                 st.error(f"エラー: シート『{target_sheet_name}』が見つかりません。")
-                st.stop()
 
-            col_a_values = sheet.col_values(1)
-            next_row = len(col_a_values) + 1
+            if sheet is not None:
+                formatted_date = selected_date.strftime("%-m/%-d")
+                duration_value = int(duration_raw) if duration_raw else ""
 
-            formatted_date = selected_date.strftime("%-m/%-d")
-            duration_value = int(duration_raw) if duration_raw else ""
+                status = st.empty()
+                lines = []
+                abort = False  # カレンダー登録に失敗したらスプレッドシートに書かず中断（二重登録防止）
 
-            study_time = ""
-            rest_time = ""
-            if category in ("休む", "瞑想"):
-                rest_time = duration_value
-            else:
-                study_time = duration_value
+                # --- 先にGoogleカレンダー登録を試みる（失敗＝保存全体を中止）---
+                if duration_value and start_time_raw:
+                    try:
+                        t = datetime.strptime(start_time_raw, "%H:%M").time()
+                    except ValueError:
+                        t = None
 
-            # A〜I列: 日付, 曜日, 分野, 開始時間, 学習時間, 休憩時間, 場所, 種別, 備考
-            row = [
-                formatted_date, weekday_str, category, start_time_raw,
-                study_time, rest_time, location, input_output or "", memo
-            ]
+                    if t is None:
+                        lines.append("📅 開始時間が HH:MM 形式でないため、カレンダー登録はスキップしました。")
+                    else:
+                        start_dt = datetime(selected_date.year, selected_date.month, selected_date.day,
+                                            t.hour, t.minute, tzinfo=JST)
+                        end_dt = start_dt + timedelta(minutes=duration_value)
+                        event = {
+                            # タイトルは分野＋所要時間（開始時刻はカレンダー側で表示されるため含めない。例: IT（30分））
+                            "summary": f"{category or '学習'}（{duration_value}分）",
+                            "location": location,                    # 予定の「場所」欄
+                            "description": f"種別: {input_output or '-'}\n備考: {memo}",
+                            # 休む・瞑想=緑(バジル/10)、それ以外=黄(バナナ/5)
+                            "colorId": "10" if category in ("休む", "瞑想") else "5",
+                            "start": {"dateTime": start_dt.isoformat(), "timeZone": "Asia/Tokyo"},
+                            "end":   {"dateTime": end_dt.isoformat(),   "timeZone": "Asia/Tokyo"},
+                        }
+                        try:
+                            insert_calendar_event(event)  # 新しい接続で登録（+リトライ）
+                            lines.append(f"📅 カレンダーに登録しました（{start_dt.strftime('%H:%M')}〜{end_dt.strftime('%H:%M')}）")
+                        except Exception as cal_err:
+                            abort = True
+                            status.error(
+                                "📅 カレンダー登録に失敗したため、保存を中止しました"
+                                "（スプレッドシートにも書き込んでいません）。もう一度お試しください。  \n"
+                                f"詳細: {cal_err}"
+                            )
+                else:
+                    lines.append("📅 開始時間または所要時間が未入力のため、カレンダー登録はスキップしました。")
 
-            range_to_update = f"A{next_row}:I{next_row}"
-            sheet.update(range_name=range_to_update, values=[row], value_input_option="USER_ENTERED")
+                # --- カレンダーが成功 or スキップのときだけスプレッドシートに保存 ---
+                if not abort:
+                    col_a_values = sheet.col_values(1)
+                    next_row = len(col_a_values) + 1
 
-            # 保存結果は単一のプレースホルダにまとめて表示する。
-            # 以降カレンダー登録処理が増えても、行を追加せず同じ場所の文字だけ更新する。
-            status = st.empty()
-            lines = [f"✅ 『{target_sheet_name}』の {next_row} 行目に保存しました！"]
-            status.success("  \n".join(lines))
-            cal_ok = True
+                    study_time = ""
+                    rest_time = ""
+                    if category in ("休む", "瞑想"):
+                        rest_time = duration_value
+                    else:
+                        study_time = duration_value
 
-            # --- Google カレンダー登録（開始時刻と所要時間が有効な場合のみ）---
-            if duration_value and start_time_raw:
-                try:
-                    t = datetime.strptime(start_time_raw, "%H:%M").time()
-                    start_dt = datetime(selected_date.year, selected_date.month, selected_date.day,
-                                        t.hour, t.minute, tzinfo=JST)
-                    end_dt = start_dt + timedelta(minutes=duration_value)
-                    event = {
-                        # タイトルは分野＋所要時間（開始時刻はカレンダー側で表示されるため含めない。例: IT（30分））
-                        "summary": f"{category or '学習'}（{duration_value}分）",
-                        "location": location,                    # 予定の「場所」欄
-                        "description": f"種別: {input_output or '-'}\n備考: {memo}",
-                        # 休む・瞑想=緑(バジル/10)、それ以外=黄(バナナ/5)
-                        "colorId": "10" if category in ("休む", "瞑想") else "5",
-                        "start": {"dateTime": start_dt.isoformat(), "timeZone": "Asia/Tokyo"},
-                        "end":   {"dateTime": end_dt.isoformat(),   "timeZone": "Asia/Tokyo"},
-                    }
-                    calendar_service.events().insert(calendarId=CALENDAR_ID, body=event).execute()
-                    lines.append(f"📅 カレンダーにも登録しました（{start_dt.strftime('%H:%M')}〜{end_dt.strftime('%H:%M')}）")
-                except ValueError:
-                    lines.append("📅 開始時間が HH:MM 形式でないため、カレンダー登録はスキップしました。")
-                    cal_ok = False
-                except Exception as cal_err:
-                    lines.append(f"📅 カレンダー登録に失敗しました: {cal_err}")
-                    cal_ok = False
-            else:
-                lines.append("📅 開始時間または所要時間が未入力のため、カレンダー登録はスキップしました。")
+                    # A〜I列: 日付, 曜日, 分野, 開始時間, 学習時間, 休憩時間, 場所, 種別, 備考
+                    row = [
+                        formatted_date, weekday_str, category, start_time_raw,
+                        study_time, rest_time, location, input_output or "", memo
+                    ]
+                    sheet.update(range_name=f"A{next_row}:I{next_row}",
+                                 values=[row], value_input_option="USER_ENTERED")
 
-            # 同じプレースホルダを更新（新しい行は追加されない）
-            (status.success if cal_ok else status.warning)("  \n".join(lines))
-            st.balloons()
+                    # 保存結果は単一のプレースホルダにまとめて表示（行を増やさず文字だけ更新）
+                    lines.insert(0, f"✅ 『{target_sheet_name}』の {next_row} 行目に保存しました！")
+                    status.success("  \n".join(lines))
+                    st.balloons()
 
         except Exception as e:
             st.error(f"保存失敗: {e}")
