@@ -170,7 +170,7 @@ with col_start:
 
 # 所要時間（pills + カスタム入力）
 st.pills("時間（分）",
-         ["3", "5", "10", "15", "20", "25", "30", "35", "40", "45", "50", "55", "60"],
+         ["1", "3", "5", "10", "15", "20", "25", "30", "35", "40", "45", "50", "55", "60"],
          key="duration_pill",
          on_change=on_duration_pill_change)
 duration_raw = st.text_input("時間（分）_input",
