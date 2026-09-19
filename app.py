@@ -95,7 +95,7 @@ def apply_preset(category, duration, location, input_output, memo):
     st.session_state['duration_pill']      = duration or None   # 未指定はpill選択なし
     st.session_state['duration_input']     = duration
     st.session_state['start_time_input']   = ""                 # 一旦クリア（durationがあれば再計算）
-    st.session_state['location_pill']      = location
+    st.session_state['location_pill']      = location or None    # 未指定はpill選択なし
     st.session_state['location_other']     = ""
     st.session_state['input_output_pill']  = input_output
     st.session_state['memo_input']         = memo
@@ -113,6 +113,15 @@ def preset_journal():
 
 def preset_reading():
     apply_preset("読書", "", "//", "In", "")
+
+def preset_handwrite():
+    apply_preset("ジャーナリング", "", "", "Out", "A4ノート手書き")
+
+def preset_verbalize():
+    apply_preset("ジャーナリング", "", "//", "Out", "言語化")
+
+def preset_walking():
+    apply_preset("休む", "", "外", "-", "ウォーキング")
 
 # --- セッション初期化 ---
 for key, default in [
@@ -137,18 +146,26 @@ selected_date = st.date_input("日付", now_jst)
 weekdays = ["月", "火", "水", "木", "金", "土", "日"]
 weekday_str = weekdays[selected_date.weekday()]
 
-# リセット＋クイック入力プリセット（1行に並べる）
-col_reset, col_med, col_workout, col_journal, col_reading = st.columns(5)
-with col_reset:
+# リセット＋クイック入力プリセット（4つずつ2段に並べる）
+r1c1, r1c2, r1c3, r1c4 = st.columns(4)
+with r1c1:
     st.button("🔄 リセット", on_click=reset_form, use_container_width=True)
-with col_med:
+with r1c2:
     st.button("🧘 瞑想", on_click=preset_meditation, use_container_width=True)
-with col_workout:
+with r1c3:
     st.button("💪 筋トレ", on_click=preset_workout, use_container_width=True)
-with col_journal:
+with r1c4:
     st.button("📔 朝日記", on_click=preset_journal, use_container_width=True)
-with col_reading:
+
+r2c1, r2c2, r2c3, r2c4 = st.columns(4)
+with r2c1:
     st.button("📖 読書", on_click=preset_reading, use_container_width=True)
+with r2c2:
+    st.button("✍️ 手書き", on_click=preset_handwrite, use_container_width=True)
+with r2c3:
+    st.button("🗣️ 言語化", on_click=preset_verbalize, use_container_width=True)
+with r2c4:
+    st.button("🚶 ウォーキング", on_click=preset_walking, use_container_width=True)
 
 category = st.pills(
     "分野",
