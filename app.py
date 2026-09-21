@@ -109,7 +109,7 @@ def preset_workout():
     apply_preset("休む", "15", "//", "-", "筋トレ")
 
 def preset_journal():
-    apply_preset("ジャーナリング", "5", "//", "Out", "日記")
+    apply_preset("ジャーナリング", "", "//", "Out", "日記")
 
 def preset_reading():
     apply_preset("読書", "", "//", "In", "")
@@ -155,7 +155,7 @@ with r1c2:
 with r1c3:
     st.button("💪 筋トレ", on_click=preset_workout, use_container_width=True)
 with r1c4:
-    st.button("📔 朝日記", on_click=preset_journal, use_container_width=True)
+    st.button("📔 日記", on_click=preset_journal, use_container_width=True)
 
 r2c1, r2c2, r2c3, r2c4 = st.columns(4)
 with r2c1:
