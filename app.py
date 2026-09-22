@@ -229,7 +229,24 @@ save_clicked = st.button("スプレッドシートに保存", type="primary", us
 
 # --- 保存処理 ---
 if save_clicked:
-    if duration_raw and not duration_raw.isdigit():
+    # 必須チェック（未入力の項目があれば登録しない）
+    missing = []
+    if not category:
+        missing.append("分野")
+    if not start_time_raw:
+        missing.append("開始時間")
+    if not duration_raw:
+        missing.append("時間（分）")
+    if not location:
+        missing.append("場所")
+    if not input_output:
+        missing.append("種別")
+    if not memo:
+        missing.append("備考")
+
+    if missing:
+        st.error("次の項目が未入力です: " + " / ".join(missing) + "\n\nすべて入力してから保存してください。")
+    elif not duration_raw.isdigit():
         st.error("「時間」には半角数字のみを入力してください。")
     else:
         try:
