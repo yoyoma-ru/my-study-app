@@ -106,19 +106,19 @@ def preset_meditation():
     apply_preset("瞑想", "5", "家", "-", "呼吸")
 
 def preset_workout():
-    apply_preset("休む", "15", "//", "-", "筋トレ")
+    apply_preset("休む", "15", "", "-", "筋トレ")
 
 def preset_journal():
-    apply_preset("ジャーナリング", "", "//", "Out", "日記")
+    apply_preset("ジャーナリング", "", "", "Out", "日記")
 
 def preset_reading():
-    apply_preset("読書", "", "//", "In", "")
+    apply_preset("読書", "", "", "In", "")
 
 def preset_handwrite():
     apply_preset("ジャーナリング", "", "", "Out", "A4ノート手書き")
 
 def preset_verbalize():
-    apply_preset("ジャーナリング", "", "//", "Out", "言語化")
+    apply_preset("ジャーナリング", "", "", "Out", "言語化")
 
 def preset_walking():
     apply_preset("休む", "", "外", "-", "ウォーキング")
