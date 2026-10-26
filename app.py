@@ -97,7 +97,7 @@ def apply_preset(category, duration, location, input_output, memo):
     st.session_state['start_time_input']   = ""                 # 一旦クリア（durationがあれば再計算）
     st.session_state['location_pill']      = location or None    # 未指定はpill選択なし
     st.session_state['location_other']     = ""
-    st.session_state['input_output_pill']  = input_output
+    st.session_state['input_output_pill']  = input_output or None   # 未指定はpill選択なし
     st.session_state['memo_input']         = memo
     st.session_state['end_time_dt']        = datetime.now(JST)  # 開始時刻を現在時刻基準に
     recompute_start()
@@ -122,6 +122,12 @@ def preset_verbalize():
 
 def preset_walking():
     apply_preset("休む", "", "外", "-", "ウォーキング")
+
+def preset_stretch():
+    apply_preset("休む", "", "家", "-", "ストレッチ")
+
+def preset_wednesday():
+    apply_preset("英語", "", "", "", "Wednesday")
 
 # --- セッション初期化 ---
 for key, default in [
@@ -166,6 +172,12 @@ with r2c3:
     st.button("🗣️ 言語化", on_click=preset_verbalize, use_container_width=True)
 with r2c4:
     st.button("🚶 ウォーキング", on_click=preset_walking, use_container_width=True)
+
+r3c1, r3c2, r3c3, r3c4 = st.columns(4)
+with r3c1:
+    st.button("🤸 ストレッチ", on_click=preset_stretch, use_container_width=True)
+with r3c2:
+    st.button("🗓️ Wednesday", on_click=preset_wednesday, use_container_width=True)
 
 category = st.pills(
     "分野",
