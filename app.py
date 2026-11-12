@@ -129,6 +129,9 @@ def preset_stretch():
 def preset_wednesday():
     apply_preset("英語", "", "", "", "Wednesday")
 
+def preset_emily():
+    apply_preset("英語", "", "", "", "エミリーパリへ行く")
+
 # --- セッション初期化 ---
 for key, default in [
     ('start_time_input', ""),
@@ -178,6 +181,8 @@ with r3c1:
     st.button("🤸 ストレッチ", on_click=preset_stretch, use_container_width=True)
 with r3c2:
     st.button("🗓️ Wednesday", on_click=preset_wednesday, use_container_width=True)
+with r3c3:
+    st.button("🗼 エミリーパリへ行く", on_click=preset_emily, use_container_width=True)
 
 category = st.pills(
     "分野",
