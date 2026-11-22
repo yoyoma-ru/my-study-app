@@ -124,6 +124,9 @@ def preset_verbalize():
 def preset_walking():
     apply_preset("休む", "", "外", "-", "ウォーキング")
 
+def preset_running():
+    apply_preset("休む", "", "外", "-", "ランニング")
+
 def preset_stretch():
     apply_preset("休む", "", "家", "-", "ストレッチ")
 
@@ -179,10 +182,12 @@ with r2c4:
 
 r3c1, r3c2, r3c3, r3c4 = st.columns(4)
 with r3c1:
-    st.button("🤸 ストレッチ", on_click=preset_stretch, use_container_width=True)
+    st.button("🏃 ランニング", on_click=preset_running, use_container_width=True)
 with r3c2:
-    st.button("🗓️ Wednesday", on_click=preset_wednesday, use_container_width=True)
+    st.button("🤸 ストレッチ", on_click=preset_stretch, use_container_width=True)
 with r3c3:
+    st.button("🗓️ Wednesday", on_click=preset_wednesday, use_container_width=True)
+with r3c4:
     st.button("🗼 エミリーパリへ行く", on_click=preset_emily, use_container_width=True)
 
 category = st.pills(
