@@ -1,3 +1,4 @@
+import time
 import streamlit as st
 import gspread
 from google.oauth2.service_account import Credentials # ライブラリを変更
@@ -241,8 +242,14 @@ input_output = st.pills("種別", ["-", "In", "Out"], key="input_output_pill")
 
 memo = st.text_input("備考", key="memo_input")
 
-# --- 保存ボタン ---
-save_clicked = st.button("スプレッドシートに保存", type="primary", use_container_width=True)
+# --- 保存ボタン（連打防止：成功後5秒は緑＋クリック不可、その後また赤に戻る）---
+COOLDOWN_SEC = 5
+save_btn_slot = st.empty()
+_in_cooldown = (time.time() - st.session_state.get('saved_at', 0.0)) < COOLDOWN_SEC
+save_clicked = save_btn_slot.button(
+    "スプレッドシートに保存", type="primary",
+    use_container_width=True, key="save_main", disabled=_in_cooldown,
+)
 
 # --- 保存処理 ---
 if save_clicked:
@@ -266,6 +273,7 @@ if save_clicked:
     elif not duration_raw.isdigit():
         st.error("「時間」には半角数字のみを入力してください。")
     else:
+        did_save = False  # 保存成功したか（成功時のみ連打防止のクールダウンへ）
         try:
             target_sheet_name = f"{selected_date.year}年{selected_date.month}月"
 
@@ -344,5 +352,22 @@ if save_clicked:
                     status.success("  \n".join(lines))
                     st.balloons()
 
+                    # 連打防止：ボタンを緑＋無効に差し替え、クールダウン開始
+                    st.session_state['saved_at'] = time.time()
+                    st.markdown(
+                        "<style>.st-key-save_done button{background-color:#21a366 !important;"
+                        "color:#fff !important;border-color:#21a366 !important;opacity:1 !important;}</style>",
+                        unsafe_allow_html=True,
+                    )
+                    save_btn_slot.button("✅ 保存しました", key="save_done",
+                                         disabled=True, use_container_width=True)
+                    did_save = True
+
         except Exception as e:
             st.error(f"保存失敗: {e}")
+
+        # 保存成功時のみ：5秒待ってから再実行し、ボタンを元の赤に戻す
+        # （st.rerun()はexceptに握られないよう try/except の外で呼ぶ）
+        if did_save:
+            time.sleep(COOLDOWN_SEC)
+            st.rerun()
